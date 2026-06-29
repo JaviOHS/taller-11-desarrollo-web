@@ -94,7 +94,7 @@ function Dashboard({ token, onLogout }) {
                 </div>
                 <div className="bg-surface-700/50 rounded-xl p-4 border border-surface-600">
                   <p className="text-xs font-semibold text-agro-400 uppercase tracking-wide mb-1">
-                    <i className="fas fa-address-card mr-1"></i>Email
+                    <i className="fas fa-envelope mr-1"></i>Email
                   </p>
                   <p className="text-lg font-bold text-white truncate">{perfil.email}</p>
                 </div>

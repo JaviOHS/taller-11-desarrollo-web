@@ -35,7 +35,7 @@ function Login({ onLogin }) {
             <i className="fas fa-seedling text-4xl text-white"></i>
           </div>
           <h1 className="text-3xl font-bold text-white">AgriRegistro</h1>
-          <p className="text-surface-400 mt-1 text-sm">Sistema de Gestión Agrícola</p>
+          <p className="text-surface-400 mt-1 text-sm">Crea tu cuenta o inicia sesión</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -46,7 +46,7 @@ function Login({ onLogin }) {
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-surface-500">
-                <i className="fas fa-user"></i>
+                <i className="fas fa-envelope"></i>
               </span>
               <input
                 id="email"
@@ -94,7 +94,7 @@ function Login({ onLogin }) {
             ) : (
               <>
                 <i className="fas fa-right-to-bracket"></i>
-                Iniciar Sesión
+                Ingresar
               </>
             )}
           </button>

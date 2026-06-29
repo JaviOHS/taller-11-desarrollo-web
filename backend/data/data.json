@@ -1,16 +1,1 @@
-[
-  {
-    "id": 1,
-    "username": "JaviOHS",
-    "email": "jharos@unemi.edu.ec",
-    "password": "CSegura12",
-    "nombre": "Javier Haro"
-  },
-  {
-    "id": 2,
-    "username": "usuario1",
-    "email": "usuario1@agricola.com",
-    "password": "pass123",
-    "nombre": "Usuario Uno"
-  }
-]
+[]

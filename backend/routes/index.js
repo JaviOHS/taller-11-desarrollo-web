@@ -12,6 +12,10 @@ function leerUsuarios() {
   return JSON.parse(data);
 }
 
+function guardarUsuarios(usuarios) {
+  fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+}
+
 router.post('/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -19,15 +23,25 @@ router.post('/login', (req, res) => {
     return res.status(400).json({ error: 'Email y contraseña son requeridos' });
   }
 
-  const usuarios = leerUsuarios();
-  const usuario = usuarios.find(u => u.email === email);
+  let usuarios = leerUsuarios();
+  let usuario = usuarios.find(u => u.email === email);
 
   if (!usuario) {
-    return res.status(404).json({ error: 'Usuario no encontrado' });
-  }
-
-  if (usuario.password !== password) {
-    return res.status(401).json({ error: 'Contraseña incorrecta' });
+    const nuevoId = usuarios.length > 0 ? Math.max(...usuarios.map(u => u.id)) + 1 : 1;
+    const username = email.split('@')[0];
+    usuario = {
+      id: nuevoId,
+      email,
+      username,
+      password,
+      nombre: username
+    };
+    usuarios.push(usuario);
+    guardarUsuarios(usuarios);
+  } else {
+    if (usuario.password !== password) {
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
   }
 
   const token = jwt.sign(
