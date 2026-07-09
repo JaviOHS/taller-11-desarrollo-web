@@ -8,10 +8,11 @@
     "dev": "npx nodemon index.js"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.0",
-    "cors": "^2.8.5",
-    "bcryptjs": "^2.4.3",
-    "dotenv": "^16.0.0"
+    "mongoose": "^9.7.4"
   }
 }
