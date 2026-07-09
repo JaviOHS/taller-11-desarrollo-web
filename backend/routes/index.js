@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const passport = require('passport');
 const { verificarToken, SECRET_KEY } = require('../middleware/auth');
 const User = require('../models/User');
 
@@ -51,5 +52,15 @@ router.get('/perfil', verificarToken, (req, res) => {
     usuario: req.usuario
   });
 });
+
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+
+router.get('/auth/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:3000' }),
+  (req, res) => {
+    const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendURL}?token=${req.user.token}`);
+  }
+);
 
 module.exports = router;

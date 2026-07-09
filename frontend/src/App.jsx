@@ -3,7 +3,18 @@ import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 
 function App() {
-  const [token, setToken] = useState(() => localStorage.getItem('token'))
+  const getInitialToken = () => {
+    const params = new URLSearchParams(window.location.search)
+    const tokenFromUrl = params.get('token')
+    if (tokenFromUrl) {
+      localStorage.setItem('token', tokenFromUrl)
+      window.history.replaceState({}, document.title, window.location.pathname)
+      return tokenFromUrl
+    }
+    return localStorage.getItem('token')
+  }
+
+  const [token, setToken] = useState(() => getInitialToken())
 
   const handleLogin = (nuevoToken) => {
     localStorage.setItem('token', nuevoToken)

@@ -1,11 +1,13 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const passport = require('passport');
 const routes = require('./routes');
+require('./middleware/passport');
 
 const app = express();
-
-require('dotenv').config();
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/iguanas-app';
 
@@ -15,6 +17,7 @@ mongoose.connect(MONGO_URI)
 
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 app.use('/api', routes);
 
 module.exports = app;
