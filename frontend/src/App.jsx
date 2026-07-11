@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import Login from './components/Login'
-import Register from './components/Register'
+import AuthCard from './components/AuthCard'
 import Dashboard from './components/Dashboard'
 
 function App() {
@@ -16,7 +15,6 @@ function App() {
   }
 
   const [token, setToken] = useState(() => getInitialToken())
-  const [vista, setVista] = useState('login')
 
   const handleLogin = (nuevoToken) => {
     localStorage.setItem('token', nuevoToken)
@@ -29,10 +27,7 @@ function App() {
   }
 
   if (!token) {
-    if (vista === 'register') {
-      return <Register onLogin={handleLogin} onIrALogin={() => setVista('login')} />
-    }
-    return <Login onLogin={handleLogin} onIrARegistro={() => setVista('register')} />
+    return <AuthCard onLogin={handleLogin} />
   }
 
   return <Dashboard token={token} onLogout={handleLogout} />
