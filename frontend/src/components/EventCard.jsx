@@ -28,17 +28,30 @@ function CategoriaChip({ cat }) {
   )
 }
 
-function Thumb({ evento, cat, size }) {
+function Thumb({ evento, cat, size, esPasado }) {
   return (
     <div className={`relative shrink-0 overflow-hidden bg-gradient-to-br from-surface-100 to-surface-200 dark:from-ink-800 dark:to-ink-900 ${size}`}>
       {evento.image ? (
-        <img src={evento.image} alt={evento.title} className="w-full h-full object-cover" />
+        <img
+          src={evento.image}
+          alt={evento.title}
+          className={`w-full h-full object-cover transition-all duration-200 ${esPasado ? 'grayscale opacity-60' : ''}`}
+        />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          <i className={`fas ${cat.icono} ${cat.color} opacity-50`} style={{ fontSize: '1.4rem' }}></i>
+          <i className={`fas ${cat.icono} ${esPasado ? 'text-surface-400 dark:text-surface-600' : cat.color} opacity-50`} style={{ fontSize: '1.4rem' }}></i>
         </div>
       )}
     </div>
+  )
+}
+
+function FinalizadoBadge({ compact }) {
+  return (
+    <span className={`shrink-0 inline-flex items-center gap-1 text-xs font-semibold rounded-lg border ${compact ? 'px-2 py-0.5' : 'px-2 py-1'} bg-surface-200/80 dark:bg-white/10 text-surface-600 dark:text-surface-300 border-surface-300 dark:border-white/10`}>
+      <i className="fas fa-clock-rotate-left"></i>
+      Finalizado
+    </span>
   )
 }
 
@@ -69,17 +82,18 @@ function Actions({ evento, onEditar, onEliminar, eliminando, compact }) {
 
 function EventCard({ evento, vista = 'grid', showCreator = false, onEditar, onEliminar, eliminando }) {
   const esPublico = evento.status === 'public'
+  const esPasado = new Date(evento.date).getTime() < Date.now()
   const cat = getCategoria(evento.category)
   const puedeEditar = typeof onEditar === 'function'
 
   if (vista === 'list') {
     return (
-      <div className="flex items-center gap-4 bg-white dark:bg-ink-900 rounded-xl ring-1 ring-surface-900/5 dark:ring-white/5 p-3 hover:shadow-md dark:hover:ring-agro-500/20 transition-all duration-200">
-        <Thumb evento={evento} cat={cat} size="w-14 h-14 rounded-lg" />
+      <div className={`flex items-center gap-4 bg-white dark:bg-ink-900 rounded-xl ring-1 ring-surface-900/5 dark:ring-white/5 p-3 hover:shadow-md dark:hover:ring-agro-500/20 transition-all duration-200 ${esPasado ? 'opacity-70' : ''}`}>
+        <Thumb evento={evento} cat={cat} size="w-14 h-14 rounded-lg" esPasado={esPasado} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="font-bold text-surface-900 dark:text-white text-sm truncate">{evento.title}</h4>
-            <EstadoBadge esPublico={esPublico} compact />
+            {esPasado ? <FinalizadoBadge compact /> : <EstadoBadge esPublico={esPublico} compact />}
           </div>
           <div className="flex items-center gap-3 text-xs text-surface-500 dark:text-surface-400 mt-1 flex-wrap">
             <span className="flex items-center gap-1"><i className="fas fa-calendar-day"></i>{formatearFecha(evento.date, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
@@ -105,20 +119,29 @@ function EventCard({ evento, vista = 'grid', showCreator = false, onEditar, onEl
   return (
     <div
       className={`bg-white dark:bg-ink-900 rounded-2xl shadow-sm ring-1 ring-surface-900/5 dark:ring-white/5 overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
-        esPublico ? 'hover:ring-agro-300 dark:hover:ring-agro-500/30' : 'hover:ring-yellow-300 dark:hover:ring-yellow-500/30'
+        esPasado
+          ? 'opacity-70 hover:ring-surface-300 dark:hover:ring-white/10'
+          : esPublico ? 'hover:ring-agro-300 dark:hover:ring-agro-500/30' : 'hover:ring-yellow-300 dark:hover:ring-yellow-500/30'
       }`}
     >
       <div className="relative">
-        <Thumb evento={evento} cat={cat} size="h-36 w-full" />
+        <Thumb evento={evento} cat={cat} size="h-36 w-full" esPasado={esPasado} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent"></div>
-        <span className={`absolute top-2.5 right-2.5 text-xs font-semibold px-2 py-1 rounded-lg border backdrop-blur ${
-          esPublico
-            ? 'bg-agro-500/20 text-white border-agro-300/40'
-            : 'bg-yellow-500/20 text-white border-yellow-300/40'
-        }`}>
-          <i className={`fas ${esPublico ? 'fa-globe' : 'fa-lock'} mr-1`}></i>
-          {esPublico ? 'Público' : 'Privado'}
-        </span>
+        {esPasado ? (
+          <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg border backdrop-blur bg-black/30 text-white border-white/20">
+            <i className="fas fa-clock-rotate-left"></i>
+            Finalizado
+          </span>
+        ) : (
+          <span className={`absolute top-2.5 right-2.5 text-xs font-semibold px-2 py-1 rounded-lg border backdrop-blur ${
+            esPublico
+              ? 'bg-agro-500/20 text-white border-agro-300/40'
+              : 'bg-yellow-500/20 text-white border-yellow-300/40'
+          }`}>
+            <i className={`fas ${esPublico ? 'fa-globe' : 'fa-lock'} mr-1`}></i>
+            {esPublico ? 'Público' : 'Privado'}
+          </span>
+        )}
         <h4 className="absolute bottom-2.5 left-3.5 right-3.5 text-white font-bold text-base leading-tight drop-shadow-sm">
           {evento.title}
         </h4>
@@ -133,12 +156,12 @@ function EventCard({ evento, vista = 'grid', showCreator = false, onEditar, onEl
         )}
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-300">
-            <i className={`fas fa-calendar-day w-4 text-center ${esPublico ? 'text-agro-500' : 'text-yellow-500'}`}></i>
+            <i className={`fas fa-calendar-day w-4 text-center ${esPasado ? 'text-surface-400' : esPublico ? 'text-agro-500' : 'text-yellow-500'}`}></i>
             <span>{formatearFecha(evento.date)}</span>
           </div>
           {evento.location && (
             <div className="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-300">
-              <i className={`fas fa-location-dot w-4 text-center ${esPublico ? 'text-agro-500' : 'text-yellow-500'}`}></i>
+              <i className={`fas fa-location-dot w-4 text-center ${esPasado ? 'text-surface-400' : esPublico ? 'text-agro-500' : 'text-yellow-500'}`}></i>
               <span>{evento.location}</span>
             </div>
           )}
