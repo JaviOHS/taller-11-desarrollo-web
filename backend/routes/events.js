@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verificarToken, optionalAuth } = require('../middleware/auth');
 const { requireResourceOwner } = require('../middleware/owner');
-const { validateTitle, validateDate, validateStatus, POPULATE_USER } = require('../utils/validation');
+const { validateTitle, validateDate, validateStatus, validateCategory, POPULATE_USER } = require('../utils/validation');
 const Event = require('../models/Event');
 
 router.get('/publicos', async (req, res) => {
@@ -17,7 +17,7 @@ router.get('/publicos', async (req, res) => {
 });
 
 router.post('/', verificarToken, async (req, res) => {
-  const { title, description, date, location, status } = req.body;
+  const { title, description, date, location, category, status } = req.body;
 
   const titleErr = validateTitle(title);
   if (titleErr) return res.status(400).json({ error: titleErr });
@@ -28,12 +28,16 @@ router.post('/', verificarToken, async (req, res) => {
   const statusErr = validateStatus(status);
   if (statusErr) return res.status(400).json({ error: statusErr });
 
+  const categoryErr = validateCategory(category);
+  if (categoryErr) return res.status(400).json({ error: categoryErr });
+
   try {
     const evento = new Event({
       title: title.trim(),
       description: description ? description.trim() : '',
       date: new Date(date),
       location: location ? location.trim() : '',
+      category: category || 'Otro',
       status: status || 'private',
       createdBy: req.usuario.id
     });
@@ -85,7 +89,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 });
 
 router.put('/:id', verificarToken, requireResourceOwner(Event), async (req, res) => {
-  const { title, description, date, location, status } = req.body;
+  const { title, description, date, location, category, status } = req.body;
   const evento = req.resource;
 
   if (title !== undefined) {
@@ -102,6 +106,11 @@ router.put('/:id', verificarToken, requireResourceOwner(Event), async (req, res)
     const statusErr = validateStatus(status);
     if (statusErr) return res.status(400).json({ error: statusErr });
     evento.status = status;
+  }
+  if (category !== undefined) {
+    const categoryErr = validateCategory(category);
+    if (categoryErr) return res.status(400).json({ error: categoryErr });
+    evento.category = category;
   }
   if (description !== undefined) evento.description = description.trim();
   if (location !== undefined) evento.location = location.trim();
