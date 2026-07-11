@@ -19,4 +19,15 @@ function verificarToken(req, res, next) {
   });
 }
 
-module.exports = { verificarToken, SECRET_KEY };
+function optionalAuth(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (token) {
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (!err) req.usuario = decoded;
+    });
+  }
+  next();
+}
+
+module.exports = { verificarToken, optionalAuth, SECRET_KEY };

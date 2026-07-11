@@ -5,6 +5,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const routes = require('./routes');
+const eventosRoutes = require('./routes/events');
 require('./middleware/passport');
 
 const app = express();
@@ -19,5 +20,6 @@ app.use(cors());
 app.use(express.json());
 app.use(passport.initialize());
 app.use('/api', routes);
+app.use('/api/eventos', eventosRoutes);
 
 module.exports = app;
