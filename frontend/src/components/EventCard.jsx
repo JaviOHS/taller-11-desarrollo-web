@@ -65,7 +65,7 @@ function Actions({ evento, onEditar, onEliminar, eliminando, compact }) {
         <i className="fas fa-pen"></i> Editar
       </button>
       <button
-        onClick={() => onEliminar(evento._id)}
+        onClick={() => onEliminar(evento)}
         disabled={eliminando === evento._id}
         className="flex items-center gap-1.5 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 font-semibold py-1.5 px-3 rounded-lg transition-all duration-200 text-xs border border-red-200 dark:border-red-500/20"
       >

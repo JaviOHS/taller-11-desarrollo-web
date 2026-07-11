@@ -8,7 +8,7 @@ Proyecto full-stack para la gestión de eventos personales. Cada usuario puede c
 - **Protección de rutas** mediante JWT con expiración de 2 horas
 - **CRUD de eventos**: Crear, listar, editar y eliminar eventos propios
 - **Eventos públicos/privados**: Control de visibilidad por evento
-- **Panel de navegación** con vistas: Mi Perfil, Mis Eventos, Eventos Públicos
+- **Navegación con React Router**: rutas `/perfil`, `/mis-eventos`, `/publicos`; sin sesión cualquier ruta muestra el login
 - **Búsqueda y filtrado** de eventos por texto y estado (público/privado)
 - **Vista en cuadrícula o lista**
 - **Subida de imágenes** para perfil y eventos (compresión client-side)
@@ -24,17 +24,21 @@ Proyecto full-stack para la gestión de eventos personales. Cada usuario puede c
 | Base de datos | MongoDB + Mongoose |
 | Autenticación | jsonwebtoken, bcryptjs, Passport.js |
 | OAuth | passport-google-oauth20 |
-| Frontend | React 18, Vite, Tailwind CSS |
+| Frontend | React 18, React Router, Vite, Tailwind CSS |
 
 ## Estructura del proyecto
 
 ```
 backend/
-├── app.js                    # Configuración Express, MongoDB, Passport
+├── app.js                    # Configuración Express, MongoDB, Passport, error handler
 ├── index.js                  # Punto de entrada (puerto 3001)
+├── controllers/
+│   ├── authController.js     # Lógica de registro, login, perfil y callback de Google
+│   └── eventController.js    # Lógica del CRUD de eventos
 ├── middleware/
 │   ├── auth.js               # verificarToken, optionalAuth
 │   ├── owner.js              # requireResourceOwner
+│   ├── errorHandler.js       # notFound (404) y errorHandler (500) centralizados
 │   └── passport.js           # Estrategia Google OAuth
 ├── models/
 │   ├── User.js               # Modelo de usuario
@@ -48,16 +52,16 @@ backend/
 
 frontend/
 ├── src/
-│   ├── App.jsx               # Autenticación, navegación, notificaciones
-│   ├── main.jsx              # Punto de entrada React
+│   ├── App.jsx               # Autenticación, rutas (React Router), notificaciones
+│   ├── main.jsx              # Punto de entrada React + BrowserRouter
 │   ├── components/
 │   │   ├── AuthCard.jsx      # Login, registro y Google OAuth
 │   │   ├── Avatar.jsx        # Avatar de usuario
-│   │   ├── Dashboard.jsx     # Perfil, estadísticas y JWT
+│   │   ├── Dashboard.jsx     # Perfil, estadísticas y JWT (ruta /perfil)
 │   │   ├── EventCard.jsx     # Tarjeta de evento (grid/lista)
-│   │   ├── MyEvents.jsx      # CRUD de eventos del usuario
+│   │   ├── MyEvents.jsx      # CRUD de eventos del usuario (ruta /mis-eventos)
 │   │   ├── Notification.jsx  # Notificaciones toast auto-descartables
-│   │   ├── PublicEvents.jsx  # Explorar eventos públicos
+│   │   ├── PublicEvents.jsx  # Explorar eventos públicos (ruta /publicos)
 │   │   └── SearchToolbar.jsx # Búsqueda y cambio de vista
 │   ├── hooks/
 │   │   ├── useDarkMode.js    # Modo oscuro
@@ -69,6 +73,10 @@ frontend/
 ├── index.html
 ├── vite.config.js            # Proxy /api → localhost:3001
 └── tailwind.config.js
+
+postman/
+├── EventMila.postman_collection.json   # Colección con todos los endpoints
+└── EventMila.postman_environment.json  # Variables baseUrl / token / eventoId
 ```
 
 ## Instalación
@@ -140,6 +148,20 @@ Backend en `http://localhost:3001`, Frontend en `http://localhost:3000`.
 | GET | `/api/eventos/:id` | Opcional | Obtener un evento por ID |
 | PUT | `/api/eventos/:id` | Bearer Token + Propietario | Actualizar evento |
 | DELETE | `/api/eventos/:id` | Bearer Token + Propietario | Eliminar evento |
+
+Rutas no encontradas devuelven `404 { "error": "Ruta no encontrada" }` y cualquier error no controlado devuelve `500 { "error": "..." }`, gestionados de forma centralizada en `middleware/errorHandler.js`.
+
+## Pruebas con Postman
+
+La colección `postman/EventMila.postman_collection.json` cubre todos los endpoints (registro, login, perfil, CRUD de eventos).
+
+1. Abrir Postman → **Import** → seleccionar `postman/EventMila.postman_collection.json` y `postman/EventMila.postman_environment.json`.
+2. Seleccionar el environment **EventMila - Local** (variable `baseUrl` apunta a `http://localhost:3001`).
+3. Ejecutar **Autenticación → Login** (o **Registro**): el token JWT de la respuesta se guarda automáticamente en la variable de colección `{{token}}` mediante un test script.
+4. Ejecutar **Eventos → Crear evento**: el `_id` del evento creado se guarda automáticamente en `{{eventoId}}` para reutilizarlo en Obtener/Actualizar/Eliminar.
+5. El resto de peticiones (perfil, mis-eventos, actualizar, eliminar) ya usan `{{token}}` y `{{eventoId}}` en sus headers/URLs.
+
+Con el backend corriendo (`npm run dev` en `backend/`), toda la colección se puede ejecutar de punta a punta con **Collection Runner** sin editar nada manualmente.
 
 ## Validaciones
 

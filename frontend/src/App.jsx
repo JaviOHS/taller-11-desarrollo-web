@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Routes, Route, Navigate, NavLink, useNavigate } from 'react-router-dom'
 import AuthCard from './components/AuthCard'
 import Dashboard from './components/Dashboard'
 import PublicEvents from './components/PublicEvents'
@@ -7,9 +8,16 @@ import Notification from './components/Notification'
 import { useDarkMode } from './hooks/useDarkMode'
 import { useParticles } from './hooks/useParticles'
 
+const tabs = [
+  { path: '/perfil', label: 'Mi Perfil', icon: 'fa-user' },
+  { path: '/mis-eventos', label: 'Mis Eventos', icon: 'fa-calendar-days' },
+  { path: '/publicos', label: 'Eventos Públicos', icon: 'fa-globe' }
+]
+
 function App() {
   const [notificacion, setNotificacion] = useState(null)
   const tokenVieneDeUrl = useRef(false)
+  const navigate = useNavigate()
 
   const notificar = (mensaje, tipo = 'success', duracion = 3000) => {
     setNotificacion({ mensaje, tipo, duracion })
@@ -28,13 +36,14 @@ function App() {
   }
 
   const [token, setToken] = useState(() => getInitialToken())
-  const [vistaApp, setVistaApp] = useState('perfil')
   const [dark, setDark] = useDarkMode()
   useParticles('particles-js', dark, !!token)
 
   useEffect(() => {
     if (tokenVieneDeUrl.current) {
       notificar('Inicio de sesión exitoso')
+      tokenVieneDeUrl.current = false
+      navigate('/perfil', { replace: true })
     }
   }, [])
 
@@ -42,29 +51,26 @@ function App() {
     localStorage.setItem('token', nuevoToken)
     setToken(nuevoToken)
     notificar('Inicio de sesión exitoso')
+    navigate('/perfil', { replace: true })
   }
 
   const handleLogout = () => {
     localStorage.removeItem('token')
     setToken(null)
-    setVistaApp('perfil')
     notificar('Sesión cerrada')
+    navigate('/login', { replace: true })
   }
 
   if (!token) {
     return (
       <>
         <Notification notificacion={notificacion} onCerrar={() => setNotificacion(null)} />
-        <AuthCard onLogin={handleLogin} onNotificar={notificar} />
+        <Routes>
+          <Route path="*" element={<AuthCard onLogin={handleLogin} onNotificar={notificar} />} />
+        </Routes>
       </>
     )
   }
-
-  const tabs = [
-    { id: 'perfil', label: 'Mi Perfil', icon: 'fa-user' },
-    { id: 'mis-eventos', label: 'Mis Eventos', icon: 'fa-calendar-days' },
-    { id: 'publicos', label: 'Eventos Públicos', icon: 'fa-globe' }
-  ]
 
   return (
     <div className="min-h-screen relative z-0 overflow-x-hidden transition-colors duration-200">
@@ -89,18 +95,18 @@ function App() {
 
           <div className="flex items-center gap-1 bg-surface-100/80 dark:bg-white/[0.03] rounded-full p-1">
             {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setVistaApp(tab.id)}
-                className={`flex items-center gap-2 font-semibold py-2 px-3 sm:px-4 rounded-full transition-all duration-200 text-sm ${
-                  vistaApp === tab.id
+              <NavLink
+                key={tab.path}
+                to={tab.path}
+                className={({ isActive }) => `flex items-center gap-2 font-semibold py-2 px-3 sm:px-4 rounded-full transition-all duration-200 text-sm ${
+                  isActive
                     ? 'bg-white dark:bg-ink-800 text-agro-700 dark:text-agro-400 shadow-sm'
                     : 'text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200'
                 }`}
               >
                 <i className={`fas ${tab.icon}`}></i>
                 <span className="hidden md:inline">{tab.label}</span>
-              </button>
+              </NavLink>
             ))}
           </div>
 
@@ -128,9 +134,12 @@ function App() {
       <Notification notificacion={notificacion} onCerrar={() => setNotificacion(null)} />
 
       <main className="max-w-6xl mx-auto px-4 py-8 relative z-[4]">
-        {vistaApp === 'perfil' && <Dashboard token={token} />}
-        {vistaApp === 'mis-eventos' && <MyEvents token={token} onNotificar={notificar} />}
-        {vistaApp === 'publicos' && <PublicEvents />}
+        <Routes>
+          <Route path="/perfil" element={<Dashboard token={token} />} />
+          <Route path="/mis-eventos" element={<MyEvents token={token} onNotificar={notificar} />} />
+          <Route path="/publicos" element={<PublicEvents />} />
+          <Route path="*" element={<Navigate to="/perfil" replace />} />
+        </Routes>
       </main>
     </div>
   )

@@ -3,6 +3,7 @@ import { fileToCompressedBase64 } from '../utils/image'
 import { CATEGORIAS } from '../utils/categorias'
 import EventCard from './EventCard'
 import SearchToolbar from './SearchToolbar'
+import ConfirmModal from './ConfirmModal'
 
 const estadoInicial = { title: '', description: '', date: '', location: '', category: 'OTRO', status: 'private', image: '' }
 
@@ -81,6 +82,7 @@ function MyEvents({ token, onNotificar }) {
   const [formulario, setFormulario] = useState(estadoInicial)
   const [guardando, setGuardando] = useState(false)
   const [eliminando, setEliminando] = useState(null)
+  const [eventoAEliminar, setEventoAEliminar] = useState(null)
 
   const cargarEventos = async () => {
     try {
@@ -178,6 +180,19 @@ function MyEvents({ token, onNotificar }) {
     } finally {
       setEliminando(null)
     }
+  }
+
+  const pedirConfirmacionEliminar = (evento) => {
+    setError('')
+    setEventoAEliminar(evento)
+  }
+
+  const cancelarEliminar = () => setEventoAEliminar(null)
+
+  const confirmarEliminar = async () => {
+    if (!eventoAEliminar) return
+    await handleEliminar(eventoAEliminar._id)
+    setEventoAEliminar(null)
   }
 
   const publicos = eventos.filter(e => e.status === 'public')
@@ -394,13 +409,22 @@ function MyEvents({ token, onNotificar }) {
                 evento={evento}
                 vista={vista}
                 onEditar={abrirEditar}
-                onEliminar={handleEliminar}
+                onEliminar={pedirConfirmacionEliminar}
                 eliminando={eliminando}
               />
             ))}
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        open={!!eventoAEliminar}
+        title="Eliminar evento"
+        message={eventoAEliminar ? `¿Seguro que quieres eliminar "${eventoAEliminar.title}"? Esta acción no se puede deshacer.` : ''}
+        loading={eliminando === eventoAEliminar?._id}
+        onConfirm={confirmarEliminar}
+        onCancel={cancelarEliminar}
+      />
     </div>
   )
 }

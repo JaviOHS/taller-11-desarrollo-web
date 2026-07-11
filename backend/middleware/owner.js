@@ -14,7 +14,7 @@ const requireResourceOwner = (model) => {
       if (err.kind === 'ObjectId') {
         return res.status(400).json({ error: 'ID inválido' });
       }
-      res.status(500).json({ error: 'Error del servidor' });
+      next(err);
     }
   };
 };

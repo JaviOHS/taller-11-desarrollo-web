@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const routes = require('./routes');
 const eventosRoutes = require('./routes/events');
+const { notFound, errorHandler } = require('./middleware/errorHandler');
 require('./middleware/passport');
 
 const app = express();
@@ -21,5 +22,8 @@ app.use(express.json({ limit: '6mb' }));
 app.use(passport.initialize());
 app.use('/api', routes);
 app.use('/api/eventos', eventosRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;
