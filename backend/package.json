@@ -1,7 +1,7 @@
 {
-  "name": "iguanas-app",
+  "name": "eventmila-api",
   "version": "1.0.0",
-  "description": "API de Registro de Iguanas",
+  "description": "API de Gestión de Eventos - EventMila",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

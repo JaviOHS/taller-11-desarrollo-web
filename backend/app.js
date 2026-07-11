@@ -9,7 +9,7 @@ require('./middleware/passport');
 
 const app = express();
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/iguanas-app';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/eventmila';
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log('Conectado a MongoDB'))

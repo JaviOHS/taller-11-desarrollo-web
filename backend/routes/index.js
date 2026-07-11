@@ -1,9 +1,59 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const { verificarToken, SECRET_KEY } = require('../middleware/auth');
 const User = require('../models/User');
+
+router.post('/registro', async (req, res) => {
+  const { nombre, email, username, password } = req.body;
+
+  if (!nombre || nombre.trim().length < 2) {
+    return res.status(400).json({ error: 'El nombre debe tener al menos 2 caracteres' });
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Email inválido' });
+  }
+  if (!username || username.trim().length < 3) {
+    return res.status(400).json({ error: 'El username debe tener al menos 3 caracteres' });
+  }
+  if (!password || password.length < 6) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  }
+
+  try {
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ error: 'El email ya está registrado' });
+    }
+
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ error: 'El username ya está en uso' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const usuario = new User({ nombre: nombre.trim(), email, username: username.trim(), password: hashedPassword });
+    await usuario.save();
+
+    const token = jwt.sign(
+      { id: usuario._id, email: usuario.email, username: usuario.username, nombre: usuario.nombre },
+      SECRET_KEY,
+      { expiresIn: '2h' }
+    );
+
+    res.status(201).json({
+      mensaje: 'Usuario registrado exitosamente',
+      token,
+      usuario: { id: usuario._id, email: usuario.email, username: usuario.username, nombre: usuario.nombre }
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -13,16 +63,14 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    let usuario = await User.findOne({ email });
-
+    const usuario = await User.findOne({ email });
     if (!usuario) {
-      const username = email.split('@')[0];
-      usuario = new User({ email, username, password, nombre: username });
-      await usuario.save();
-    } else {
-      if (usuario.password !== password) {
-        return res.status(401).json({ error: 'Contraseña incorrecta' });
-      }
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    const isMatch = await bcrypt.compare(password, usuario.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
     const token = jwt.sign(
@@ -34,12 +82,7 @@ router.post('/login', async (req, res) => {
     res.json({
       mensaje: 'Inicio de sesión exitoso',
       token,
-      usuario: {
-        id: usuario._id,
-        email: usuario.email,
-        username: usuario.username,
-        nombre: usuario.nombre
-      }
+      usuario: { id: usuario._id, email: usuario.email, username: usuario.username, nombre: usuario.nombre }
     });
   } catch (err) {
     res.status(500).json({ error: 'Error del servidor' });

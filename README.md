@@ -1,6 +1,23 @@
-# Iguanas App - API de Registro de Iguanas
+# EventMila - Gestión de Eventos
 
-Proyecto full-stack con autenticación JWT y login con Google OAuth.
+Proyecto full-stack para la gestión de eventos personales. Cada usuario puede crear, editar y eliminar sus propios eventos, y hacerlos públicos para que el resto de usuarios los vea.
+
+## Alcance del proyecto
+
+### Funcionalidades actuales (v1)
+
+- **Registro de usuarios** con validaciones (nombre, email, username, contraseña)
+- **Inicio de sesión** con email/contraseña (contraseñas hasheadas con bcryptjs)
+- **Inicio de sesión con Google OAuth 2.0**
+- **Protección de rutas** mediante JWT (jsonwebtoken)
+- **Perfil de usuario** con visualización del JWT
+
+### Próximas funcionalidades
+
+- **Modelo `Event`**: título, descripción, fecha, ubicación, estado (público/privado), creador
+- **CRUD de eventos**: crear, listar, editar y eliminar eventos propios
+- **Eventos públicos**: ventana para visualizar todos los eventos públicos de todos los usuarios
+- **Panel de control** con navegación entre "Mis Eventos" y "Eventos Públicos"
 
 ## Tecnologías
 
@@ -22,16 +39,18 @@ backend/
 │   ├── auth.js          # Middleware verificarToken + SECRET_KEY
 │   └── passport.js      # Estrategia Google OAuth
 ├── models/
-│   └── User.js          # Modelo de usuario (Mongoose)
+│   ├── User.js          # Modelo de usuario
+│   └── Event.js         # Modelo de evento
 ├── routes/
-│   └── index.js         # POST /login, GET /perfil, GET /auth/google, GET /auth/google/callback
+│   └── index.js         # POST /registro, POST /login, GET /perfil, Google OAuth
 └── .env                 # Variables de entorno (no versionado)
 
 frontend/
 ├── src/
-│   ├── App.jsx          # Manejo de estado de autenticación y token desde URL
+│   ├── App.jsx          # Manejo de autenticación y navegación login/register
 │   ├── components/
-│   │   ├── Login.jsx    # Formulario de login + botón Google OAuth
+│   │   ├── Login.jsx    # Formulario de inicio de sesión + Google OAuth
+│   │   ├── Register.jsx # Formulario de registro
 │   │   └── Dashboard.jsx # Perfil protegido + visualización del JWT
 │   └── main.jsx         # Punto de entrada React
 ├── index.html
@@ -57,7 +76,7 @@ Crear `backend/.env`:
 
 ```env
 PORT=3001
-MONGO_URI=mongodb://localhost:27017/iguanas-app
+MONGO_URI=mongodb://localhost:27017/eventmila
 SECRET_KEY=tu_clave_secreta
 GOOGLE_CLIENT_ID=tu_id_de_google_cloud
 GOOGLE_CLIENT_SECRET=tu_secret_de_google_cloud
@@ -92,21 +111,50 @@ Backend en `http://localhost:3001`, Frontend en `http://localhost:3000`.
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| POST | `/api/login` | No | Login o registro con email/contraseña. Devuelve JWT |
+| POST | `/api/registro` | No | Registro de usuario con validaciones. Devuelve JWT |
+| POST | `/api/login` | No | Inicio de sesión. Devuelve JWT |
 | GET | `/api/perfil` | Bearer Token | Datos del usuario autenticado |
 | GET | `/api/auth/google` | No | Redirige al login de Google OAuth |
 | GET | `/api/auth/google/callback` | No | Callback OAuth, genera JWT y redirige al frontend |
 
+## Validaciones
+
+### Registro (`POST /api/registro`)
+
+- `nombre`: obligatorio, mínimo 2 caracteres
+- `email`: obligatorio, formato válido, único en la BD
+- `username`: obligatorio, mínimo 3 caracteres, único en la BD
+- `password`: obligatorio, mínimo 6 caracteres (se almacena hasheada con bcryptjs)
+
+### Login (`POST /api/login`)
+
+- `email` y `password`: obligatorios
+- Si las credenciales son inválidas responde con `401` y mensaje genérico
+
 ## Pruebas con Postman
 
-### Login con email/contraseña
+### Registro
+
+```
+POST http://localhost:3001/api/registro
+Content-Type: application/json
+
+{
+  "nombre": "Juan Pérez",
+  "email": "juan@correo.com",
+  "username": "juanperez",
+  "password": "123456"
+}
+```
+
+### Login
 
 ```
 POST http://localhost:3001/api/login
 Content-Type: application/json
 
 {
-  "email": "test@correo.com",
+  "email": "juan@correo.com",
   "password": "123456"
 }
 ```
@@ -116,7 +164,7 @@ Respuesta:
 {
   "mensaje": "Inicio de sesión exitoso",
   "token": "eyJhbGciOiJIUzI1NiIs...",
-  "usuario": { "id": "...", "email": "test@correo.com", "nombre": "test" }
+  "usuario": { "id": "...", "email": "juan@correo.com", "nombre": "Juan Pérez" }
 }
 ```
 
@@ -133,6 +181,6 @@ Abrir en el navegador `http://localhost:3000` y hacer clic en "Ingresar con Goog
 
 ## Flujo de autenticación
 
-1. **JWT local**: El usuario ingresa email/contraseña → `POST /api/login` → si credenciales válidas → se firma un JWT con `jwt.sign()` (expira en 2h) → se devuelve al frontend → se almacena en localStorage → se envía en header `Authorization: Bearer <token>` en cada request protegido.
+1. **Registro/Login local**: El usuario completa el formulario → `POST /api/registro` o `POST /api/login` → si los datos son válidos → se firma un JWT con `jwt.sign()` (expira en 2h) → se devuelve al frontend → se almacena en localStorage → se envía en header `Authorization: Bearer <token>` en cada request protegido.
 2. **Google OAuth**: El usuario hace clic en "Ingresar con Google" → redirige a Google → Google autentica y redirige a `/api/auth/google/callback` → Passport obtiene el perfil → busca o crea usuario en MongoDB → genera JWT → redirige al frontend con `?token=<jwt>` → `App.jsx` lo captura y lo guarda en localStorage.
 3. **Middleware de protección** (`verificarToken` en `middleware/auth.js`): extrae el token del header, lo verifica con `jwt.verify()` y adjunta el payload decodificado a `req.usuario`.

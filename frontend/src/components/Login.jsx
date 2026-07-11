@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function Login({ onLogin }) {
+function Login({ onLogin, onIrARegistro }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -32,10 +32,10 @@ function Login({ onLogin }) {
       <div className="bg-surface-800 rounded-2xl shadow-2xl shadow-black/40 border border-surface-700 w-full max-w-md p-8">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-agro-500 to-agro-700 rounded-2xl mb-4 shadow-lg shadow-agro-500/20">
-            <i className="fas fa-seedling text-4xl text-white"></i>
+            <i className="fas fa-calendar-alt text-4xl text-white"></i>
           </div>
-          <h1 className="text-3xl font-bold text-white">AgriRegistro</h1>
-          <p className="text-surface-400 mt-1 text-sm">Crea tu cuenta o inicia sesión</p>
+          <h1 className="text-3xl font-bold text-white">EventMila</h1>
+          <p className="text-surface-400 mt-1 text-sm">Gestiona tus eventos fácilmente</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -53,7 +53,7 @@ function Login({ onLogin }) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="usuario@campo.com"
+                placeholder="usuario@correo.com"
                 className="w-full pl-10 pr-4 py-3 bg-surface-700 border-2 border-surface-600 rounded-xl focus:border-agro-500 focus:ring-2 focus:ring-agro-500/20 outline-none transition-all text-white placeholder-surface-400"
                 required
               />
@@ -94,7 +94,7 @@ function Login({ onLogin }) {
             ) : (
               <>
                 <i className="fas fa-right-to-bracket"></i>
-                Ingresar
+                Iniciar Sesión
               </>
             )}
           </button>
@@ -129,9 +129,11 @@ function Login({ onLogin }) {
           </div>
         )}
 
-        <p className="text-center text-xs text-surface-500 mt-6">
-          <i className="fas fa-leaf mr-1"></i>
-          AgriRegistro v1.0 &copy; 2024
+        <p className="text-center text-sm text-surface-400 mt-6">
+          ¿No tienes cuenta?{' '}
+          <button onClick={onIrARegistro} className="text-agro-400 hover:text-agro-300 font-semibold underline transition-colors">
+            Regístrate
+          </button>
         </p>
       </div>
     </div>
