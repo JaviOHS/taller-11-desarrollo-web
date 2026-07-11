@@ -36,11 +36,11 @@ router.post('/', verificarToken, async (req, res) => {
 
   try {
     const evento = new Event({
-      title: title.trim(),
+      title: title.trim().toUpperCase(),
       description: description ? description.trim() : '',
       date: new Date(date),
-      location: location ? location.trim() : '',
-      category: category || 'Otro',
+      location: location ? location.trim().toUpperCase() : '',
+      category: (category || 'OTRO').toUpperCase(),
       status: status || 'private',
       image: image || '',
       createdBy: req.usuario.id
@@ -99,7 +99,7 @@ router.put('/:id', verificarToken, requireResourceOwner(Event), async (req, res)
   if (title !== undefined) {
     const titleErr = validateTitle(title);
     if (titleErr) return res.status(400).json({ error: titleErr });
-    evento.title = title.trim();
+    evento.title = title.trim().toUpperCase();
   }
   if (date !== undefined) {
     const dateErr = validateDate(date);
@@ -114,7 +114,7 @@ router.put('/:id', verificarToken, requireResourceOwner(Event), async (req, res)
   if (category !== undefined) {
     const categoryErr = validateCategory(category);
     if (categoryErr) return res.status(400).json({ error: categoryErr });
-    evento.category = category;
+    evento.category = category.toUpperCase();
   }
   if (image !== undefined) {
     const imageErr = validateImage(image);
@@ -122,7 +122,7 @@ router.put('/:id', verificarToken, requireResourceOwner(Event), async (req, res)
     evento.image = image;
   }
   if (description !== undefined) evento.description = description.trim();
-  if (location !== undefined) evento.location = location.trim();
+  if (location !== undefined) evento.location = location.trim().toUpperCase();
 
   try {
     await evento.save();

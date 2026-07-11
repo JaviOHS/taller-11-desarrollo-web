@@ -1,23 +1,20 @@
 # EventMila - Gestión de Eventos
 
-Proyecto full-stack para la gestión de eventos personales. Cada usuario puede crear, editar y eliminar sus propios eventos, y hacerlos públicos para que el resto de usuarios los vea.
+Proyecto full-stack para la gestión de eventos personales. Cada usuario puede crear, editar y eliminar sus propios eventos, y hacerlos públicos para que el resto de usuarios los descubra.
 
-## Alcance del proyecto
+## Funcionalidades
 
-### Funcionalidades actuales (v1)
-
-- **Registro de usuarios** con validaciones (nombre, email, username, contraseña)
-- **Inicio de sesión** con email/contraseña (contraseñas hasheadas con bcryptjs)
-- **Inicio de sesión con Google OAuth 2.0**
-- **Protección de rutas** mediante JWT (jsonwebtoken)
-- **Perfil de usuario** con visualización del JWT
-
-### Próximas funcionalidades
-
-- **Modelo `Event`**: título, descripción, fecha, ubicación, estado (público/privado), creador
-- **CRUD de eventos**: crear, listar, editar y eliminar eventos propios
-- **Eventos públicos**: ventana para visualizar todos los eventos públicos de todos los usuarios
-- **Panel de control** con navegación entre "Mis Eventos" y "Eventos Públicos"
+- **Autenticación**: Registro de usuarios, inicio de sesión con email/contraseña, e inicio de sesión con Google OAuth 2.0
+- **Protección de rutas** mediante JWT con expiración de 2 horas
+- **CRUD de eventos**: Crear, listar, editar y eliminar eventos propios
+- **Eventos públicos/privados**: Control de visibilidad por evento
+- **Panel de navegación** con vistas: Mi Perfil, Mis Eventos, Eventos Públicos
+- **Búsqueda y filtrado** de eventos por texto y estado (público/privado)
+- **Vista en cuadrícula o lista**
+- **Subida de imágenes** para perfil y eventos (compresión client-side)
+- **Modo oscuro** con persistencia en localStorage
+- **Notificaciones toast** con auto-descarte: inicio/cierre de sesión, creación/edición/eliminación de eventos
+- **Campos normalizados**: título, ubicación y categoría se almacenan en **UPPERCASE** (descripción se conserva tal cual)
 
 ## Tecnologías
 
@@ -33,28 +30,44 @@ Proyecto full-stack para la gestión de eventos personales. Cada usuario puede c
 
 ```
 backend/
-├── app.js               # Configuración Express, MongoDB, Passport
-├── index.js             # Punto de entrada (puerto 3001)
+├── app.js                    # Configuración Express, MongoDB, Passport
+├── index.js                  # Punto de entrada (puerto 3001)
 ├── middleware/
-│   ├── auth.js          # Middleware verificarToken + SECRET_KEY
-│   └── passport.js      # Estrategia Google OAuth
+│   ├── auth.js               # verificarToken, optionalAuth
+│   ├── owner.js              # requireResourceOwner
+│   └── passport.js           # Estrategia Google OAuth
 ├── models/
-│   ├── User.js          # Modelo de usuario
-│   └── Event.js         # Modelo de evento
+│   ├── User.js               # Modelo de usuario
+│   └── Event.js              # Modelo de evento
 ├── routes/
-│   └── index.js         # POST /registro, POST /login, GET /perfil, Google OAuth
-└── .env                 # Variables de entorno (no versionado)
+│   ├── index.js              # /api/registro, /api/login, /api/perfil, Google OAuth
+│   └── events.js             # CRUD /api/eventos
+├── utils/
+│   └── validation.js         # Validaciones de campos
+└── .env                      # Variables de entorno (no versionado)
 
 frontend/
 ├── src/
-│   ├── App.jsx          # Manejo de autenticación y navegación login/register
+│   ├── App.jsx               # Autenticación, navegación, notificaciones
+│   ├── main.jsx              # Punto de entrada React
 │   ├── components/
-│   │   ├── Login.jsx    # Formulario de inicio de sesión + Google OAuth
-│   │   ├── Register.jsx # Formulario de registro
-│   │   └── Dashboard.jsx # Perfil protegido + visualización del JWT
-│   └── main.jsx         # Punto de entrada React
+│   │   ├── AuthCard.jsx      # Login, registro y Google OAuth
+│   │   ├── Avatar.jsx        # Avatar de usuario
+│   │   ├── Dashboard.jsx     # Perfil, estadísticas y JWT
+│   │   ├── EventCard.jsx     # Tarjeta de evento (grid/lista)
+│   │   ├── MyEvents.jsx      # CRUD de eventos del usuario
+│   │   ├── Notification.jsx  # Notificaciones toast auto-descartables
+│   │   ├── PublicEvents.jsx  # Explorar eventos públicos
+│   │   └── SearchToolbar.jsx # Búsqueda y cambio de vista
+│   ├── hooks/
+│   │   ├── useDarkMode.js    # Modo oscuro
+│   │   └── useParticles.js   # Fondo de partículas
+│   └── utils/
+│       ├── categorias.js     # Lista de categorías
+│       ├── image.js          # Compresión de imágenes
+│       └── jwt.js            # Decodificación de JWT
 ├── index.html
-├── vite.config.js       # Proxy /api → localhost:3001
+├── vite.config.js            # Proxy /api → localhost:3001
 └── tailwind.config.js
 ```
 
@@ -109,78 +122,58 @@ Backend en `http://localhost:3001`, Frontend en `http://localhost:3000`.
 
 ## Endpoints de la API
 
+### Autenticación
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| POST | `/api/registro` | No | Registro de usuario con validaciones. Devuelve JWT |
+| POST | `/api/registro` | No | Registro de usuario. Devuelve JWT |
 | POST | `/api/login` | No | Inicio de sesión. Devuelve JWT |
 | GET | `/api/perfil` | Bearer Token | Datos del usuario autenticado |
 | GET | `/api/auth/google` | No | Redirige al login de Google OAuth |
 | GET | `/api/auth/google/callback` | No | Callback OAuth, genera JWT y redirige al frontend |
 
+### Eventos
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| POST | `/api/eventos/` | Bearer Token | Crear evento |
+| GET | `/api/eventos/mis-eventos` | Bearer Token | Listar eventos del usuario |
+| GET | `/api/eventos/publicos` | No | Listar eventos públicos de todos los usuarios |
+| GET | `/api/eventos/:id` | Opcional | Obtener un evento por ID |
+| PUT | `/api/eventos/:id` | Bearer Token + Propietario | Actualizar evento |
+| DELETE | `/api/eventos/:id` | Bearer Token + Propietario | Eliminar evento |
+
 ## Validaciones
 
 ### Registro (`POST /api/registro`)
-
 - `nombre`: obligatorio, mínimo 2 caracteres
 - `email`: obligatorio, formato válido, único en la BD
 - `username`: obligatorio, mínimo 3 caracteres, único en la BD
 - `password`: obligatorio, mínimo 6 caracteres (se almacena hasheada con bcryptjs)
 
-### Login (`POST /api/login`)
+### Eventos
+- `title`: obligatorio, mínimo 3 caracteres (se guarda en UPPERCASE)
+- `date`: obligatorio, fecha válida
+- `category`: debe ser una categoría válida (se guarda en UPPERCASE)
+- `status`: debe ser `public` o `private`
+- `image`: opcional, formato PNG/JPG/WEBP/GIF, máximo 4MB
+- `location`: opcional (se guarda en UPPERCASE)
+- `description`: opcional (se guarda tal cual)
 
-- `email` y `password`: obligatorios
-- Si las credenciales son inválidas responde con `401` y mensaje genérico
+## Notificaciones
 
-## Pruebas con Postman
+El sistema muestra notificaciones toast automáticas en estas acciones:
 
-### Registro
-
-```
-POST http://localhost:3001/api/registro
-Content-Type: application/json
-
-{
-  "nombre": "Juan Pérez",
-  "email": "juan@correo.com",
-  "username": "juanperez",
-  "password": "123456"
-}
-```
-
-### Login
-
-```
-POST http://localhost:3001/api/login
-Content-Type: application/json
-
-{
-  "email": "juan@correo.com",
-  "password": "123456"
-}
-```
-
-Respuesta:
-```json
-{
-  "mensaje": "Inicio de sesión exitoso",
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "usuario": { "id": "...", "email": "juan@correo.com", "nombre": "Juan Pérez" }
-}
-```
-
-### Ruta protegida
-
-```
-GET http://localhost:3001/api/perfil
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
-```
-
-### Login con Google
-
-Abrir en el navegador `http://localhost:3000` y hacer clic en "Ingresar con Google".
+| Acción | Mensaje | Duración |
+|--------|---------|----------|
+| Inicio de sesión | "Inicio de sesión exitoso" | 3s |
+| Registro | "Cuenta creada exitosamente" | 3s |
+| Google OAuth | "Inicio de sesión exitoso" | 3s |
+| Cerrar sesión | "Sesión cerrada" | 3s |
+| Crear evento | "Evento creado exitosamente" | 3s |
+| Editar evento | "Evento editado exitosamente" | 3s |
+| Eliminar evento | "Evento eliminado exitosamente" | 3s |
 
 ## Flujo de autenticación
 
 1. **Registro/Login local**: El usuario completa el formulario → `POST /api/registro` o `POST /api/login` → si los datos son válidos → se firma un JWT con `jwt.sign()` (expira en 2h) → se devuelve al frontend → se almacena en localStorage → se envía en header `Authorization: Bearer <token>` en cada request protegido.
-2. **Google OAuth**: El usuario hace clic en "Ingresar con Google" → redirige a Google → Google autentica y redirige a `/api/auth/google/callback` → Passport obtiene el perfil → busca o crea usuario en MongoDB → genera JWT → redirige al frontend con `?token=<jwt>` → `App.jsx` lo captura y lo guarda en localStorage.
+2. **Google OAuth**: El usuario hace clic en "Continuar con Google" → redirige a Google → Google autentica y redirige a `/api/auth/google/callback` → Passport obtiene el perfil → busca o crea usuario en MongoDB → genera JWT → redirige al frontend con `?token=<jwt>` → `App.jsx` lo captura y lo guarda en localStorage.
 3. **Middleware de protección** (`verificarToken` en `middleware/auth.js`): extrae el token del header, lo verifica con `jwt.verify()` y adjunta el payload decodificado a `req.usuario`.

@@ -4,7 +4,7 @@ import { CATEGORIAS } from '../utils/categorias'
 import EventCard from './EventCard'
 import SearchToolbar from './SearchToolbar'
 
-const estadoInicial = { title: '', description: '', date: '', location: '', category: 'Otro', status: 'private', image: '' }
+const estadoInicial = { title: '', description: '', date: '', location: '', category: 'OTRO', status: 'private', image: '' }
 
 function ImageDropzone({ value, onChange }) {
   const inputRef = useRef(null)
@@ -70,7 +70,7 @@ function ImageDropzone({ value, onChange }) {
   )
 }
 
-function MyEvents({ token }) {
+function MyEvents({ token, onNotificar }) {
   const [eventos, setEventos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
@@ -122,7 +122,7 @@ function MyEvents({ token }) {
       description: evento.description || '',
       date: formatearFechaInput(evento.date),
       location: evento.location || '',
-      category: evento.category || 'Otro',
+      category: evento.category || 'OTRO',
       status: evento.status,
       image: evento.image || ''
     })
@@ -137,16 +137,24 @@ function MyEvents({ token }) {
     try {
       const url = editando ? `/api/eventos/${editando}` : '/api/eventos/'
       const method = editando ? 'PUT' : 'POST'
+      const body = {
+        ...formulario,
+        title: formulario.title.toUpperCase(),
+        location: formulario.location.toUpperCase(),
+        category: formulario.category.toUpperCase(),
+        description: formulario.description
+      }
       const res = await fetch(url, {
         method,
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(formulario)
+        body: JSON.stringify(body)
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setEditando(null)
       setFormulario(estadoInicial)
       await cargarEventos()
+      onNotificar?.(`Evento ${editando ? 'editado' : 'creado'} exitosamente`)
     } catch (err) {
       setError(err.message || 'Error al guardar el evento')
     } finally {
@@ -164,6 +172,7 @@ function MyEvents({ token }) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       await cargarEventos()
+      onNotificar?.('Evento eliminado exitosamente')
     } catch (err) {
       setError(err.message || 'Error al eliminar el evento')
     } finally {

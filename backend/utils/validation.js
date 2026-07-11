@@ -15,16 +15,16 @@ const validateImage = (image) => {
   return null;
 };
 
-const CATEGORIES = ['Deporte', 'Musica', 'Educacion', 'Tecnologia', 'Gastronomia', 'Social', 'Otro'];
+const CATEGORIES = ['DEPORTE', 'MUSICA', 'EDUCACION', 'TECNOLOGIA', 'GASTRONOMIA', 'SOCIAL', 'OTRO'];
 
 const CATEGORY_ICONS = {
-  'Deporte': { icono: 'fa-futbol', color: 'blue' },
-  'Musica': { icono: 'fa-music', color: 'purple' },
-  'Educacion': { icono: 'fa-graduation-cap', color: 'yellow' },
-  'Tecnologia': { icono: 'fa-microchip', color: 'cyan' },
-  'Gastronomia': { icono: 'fa-utensils', color: 'orange' },
-  'Social': { icono: 'fa-people-group', color: 'pink' },
-  'Otro': { icono: 'fa-ellipsis', color: 'surface' }
+  'DEPORTE': { icono: 'fa-futbol', color: 'blue' },
+  'MUSICA': { icono: 'fa-music', color: 'purple' },
+  'EDUCACION': { icono: 'fa-graduation-cap', color: 'yellow' },
+  'TECNOLOGIA': { icono: 'fa-microchip', color: 'cyan' },
+  'GASTRONOMIA': { icono: 'fa-utensils', color: 'orange' },
+  'SOCIAL': { icono: 'fa-people-group', color: 'pink' },
+  'OTRO': { icono: 'fa-ellipsis', color: 'surface' }
 };
 
 const validateTitle = (title) => {

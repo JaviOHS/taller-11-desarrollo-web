@@ -1,18 +1,27 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import AuthCard from './components/AuthCard'
 import Dashboard from './components/Dashboard'
 import PublicEvents from './components/PublicEvents'
 import MyEvents from './components/MyEvents'
+import Notification from './components/Notification'
 import { useDarkMode } from './hooks/useDarkMode'
 import { useParticles } from './hooks/useParticles'
 
 function App() {
+  const [notificacion, setNotificacion] = useState(null)
+  const tokenVieneDeUrl = useRef(false)
+
+  const notificar = (mensaje, tipo = 'success', duracion = 3000) => {
+    setNotificacion({ mensaje, tipo, duracion })
+  }
+
   const getInitialToken = () => {
     const params = new URLSearchParams(window.location.search)
     const tokenFromUrl = params.get('token')
     if (tokenFromUrl) {
       localStorage.setItem('token', tokenFromUrl)
       window.history.replaceState({}, document.title, window.location.pathname)
+      tokenVieneDeUrl.current = true
       return tokenFromUrl
     }
     return localStorage.getItem('token')
@@ -23,19 +32,32 @@ function App() {
   const [dark, setDark] = useDarkMode()
   useParticles('particles-js', dark, !!token)
 
+  useEffect(() => {
+    if (tokenVieneDeUrl.current) {
+      notificar('Inicio de sesión exitoso')
+    }
+  }, [])
+
   const handleLogin = (nuevoToken) => {
     localStorage.setItem('token', nuevoToken)
     setToken(nuevoToken)
+    notificar('Inicio de sesión exitoso')
   }
 
   const handleLogout = () => {
     localStorage.removeItem('token')
     setToken(null)
     setVistaApp('perfil')
+    notificar('Sesión cerrada')
   }
 
   if (!token) {
-    return <AuthCard onLogin={handleLogin} />
+    return (
+      <>
+        <Notification notificacion={notificacion} onCerrar={() => setNotificacion(null)} />
+        <AuthCard onLogin={handleLogin} onNotificar={notificar} />
+      </>
+    )
   }
 
   const tabs = [
@@ -103,9 +125,11 @@ function App() {
 
       <div className="h-[76px]"></div>
 
+      <Notification notificacion={notificacion} onCerrar={() => setNotificacion(null)} />
+
       <main className="max-w-6xl mx-auto px-4 py-8 relative z-[4]">
         {vistaApp === 'perfil' && <Dashboard token={token} />}
-        {vistaApp === 'mis-eventos' && <MyEvents token={token} />}
+        {vistaApp === 'mis-eventos' && <MyEvents token={token} onNotificar={notificar} />}
         {vistaApp === 'publicos' && <PublicEvents />}
       </main>
     </div>

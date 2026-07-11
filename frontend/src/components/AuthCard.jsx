@@ -50,7 +50,7 @@ function GoogleButton() {
   )
 }
 
-function LoginForm({ onLogin }) {
+function LoginForm({ onLogin, onNotificar }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -68,6 +68,7 @@ function LoginForm({ onLogin }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
+      onNotificar?.('Inicio de sesión exitoso')
       onLogin(data.token)
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión')
@@ -176,7 +177,7 @@ function ProfilePhotoInput({ value, onChange }) {
   )
 }
 
-function RegisterForm({ onLogin }) {
+function RegisterForm({ onLogin, onNotificar }) {
   const [form, setForm] = useState({ nombre: '', email: '', username: '', password: '', profileImage: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -195,6 +196,7 @@ function RegisterForm({ onLogin }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
+      onNotificar?.('Cuenta creada exitosamente')
       onLogin(data.token)
     } catch (err) {
       setError(err.message || 'Error al registrarse')
@@ -297,7 +299,7 @@ function RegisterForm({ onLogin }) {
   )
 }
 
-function AuthCard({ onLogin }) {
+function AuthCard({ onLogin, onNotificar }) {
   const [tab, setTab] = useState('login')
 
   return (
@@ -375,7 +377,7 @@ function AuthCard({ onLogin }) {
             </button>
           </div>
 
-          {tab === 'login' ? <LoginForm onLogin={onLogin} /> : <RegisterForm onLogin={onLogin} />}
+          {tab === 'login' ? <LoginForm onLogin={onLogin} onNotificar={onNotificar} /> : <RegisterForm onLogin={onLogin} onNotificar={onNotificar} />}
         </div>
       </div>
     </div>
