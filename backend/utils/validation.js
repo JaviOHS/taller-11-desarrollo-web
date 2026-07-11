@@ -1,4 +1,19 @@
-const POPULATE_USER = 'nombre username email';
+const POPULATE_USER = 'nombre username email profileImage';
+
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+
+const validateImage = (image) => {
+  if (!image) return null;
+  if (typeof image !== 'string' || !/^data:image\/(png|jpe?g|webp|gif);base64,/.test(image)) {
+    return 'La imagen debe ser un archivo PNG, JPG, WEBP o GIF';
+  }
+  const base64Length = image.length - image.indexOf(',') - 1;
+  const approxBytes = base64Length * 0.75;
+  if (approxBytes > MAX_IMAGE_BYTES) {
+    return 'La imagen es demasiado grande (máximo 4MB)';
+  }
+  return null;
+};
 
 const CATEGORIES = ['Deporte', 'Musica', 'Educacion', 'Tecnologia', 'Gastronomia', 'Social', 'Otro'];
 
@@ -40,4 +55,4 @@ const validateCategory = (category) => {
   return null;
 };
 
-module.exports = { validateTitle, validateDate, validateStatus, validateCategory, POPULATE_USER, CATEGORIES };
+module.exports = { validateTitle, validateDate, validateStatus, validateCategory, validateImage, POPULATE_USER, CATEGORIES };

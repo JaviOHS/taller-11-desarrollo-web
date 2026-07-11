@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { fileToCompressedBase64 } from '../utils/image'
 
 function PasswordInput({ id, name, value, onChange, placeholder, autoComplete, minLength }) {
   const [visible, setVisible] = useState(false)
@@ -134,8 +135,49 @@ function LoginForm({ onLogin }) {
   )
 }
 
+function ProfilePhotoInput({ value, onChange }) {
+  const inputRef = useRef(null)
+  const [error, setError] = useState('')
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError('')
+    try {
+      const base64 = await fileToCompressedBase64(file)
+      onChange(base64)
+    } catch (err) {
+      setError(err.message || 'No se pudo procesar la imagen')
+    } finally {
+      e.target.value = ''
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="relative w-20 h-20 rounded-full overflow-hidden bg-surface-100 border-2 border-dashed border-surface-300 hover:border-agro-400 transition flex items-center justify-center group"
+      >
+        {value ? (
+          <img src={value} alt="Foto de perfil" className="w-full h-full object-cover" />
+        ) : (
+          <i className="fas fa-camera text-surface-400 text-lg"></i>
+        )}
+        <div className="absolute inset-0 bg-surface-900/0 group-hover:bg-surface-900/30 transition flex items-center justify-center">
+          <i className="fas fa-pen text-white text-xs opacity-0 group-hover:opacity-100 transition"></i>
+        </div>
+      </button>
+      <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+      <p className="mt-1.5 text-[11px] text-surface-400">Foto de perfil (opcional)</p>
+      {error && <p className="text-[11px] text-red-500 mt-0.5">{error}</p>}
+    </div>
+  )
+}
+
 function RegisterForm({ onLogin }) {
-  const [form, setForm] = useState({ nombre: '', email: '', username: '', password: '' })
+  const [form, setForm] = useState({ nombre: '', email: '', username: '', password: '', profileImage: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -163,6 +205,8 @@ function RegisterForm({ onLogin }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <ProfilePhotoInput value={form.profileImage} onChange={(base64) => setForm({ ...form, profileImage: base64 })} />
+
       <div>
         <label htmlFor="reg-nombre" className="block text-xs font-semibold text-surface-600 mb-1.5">Nombre completo</label>
         <div className="relative">

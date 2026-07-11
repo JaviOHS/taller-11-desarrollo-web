@@ -19,8 +19,12 @@ async (accessToken, refreshToken, profile, done) => {
         email,
         username: profile.displayName.replace(/\s+/g, '').toLowerCase(),
         password: 'google_oauth',
-        nombre: profile.displayName
+        nombre: profile.displayName,
+        profileImage: profile.photos?.[0]?.value || ''
       });
+      await usuario.save();
+    } else if (!usuario.profileImage && profile.photos?.[0]?.value) {
+      usuario.profileImage = profile.photos[0].value;
       await usuario.save();
     }
 

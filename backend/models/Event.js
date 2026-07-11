@@ -7,6 +7,7 @@ const eventoSchema = new mongoose.Schema({
   location: { type: String, trim: true },
   category: { type: String, enum: ['Deporte', 'Musica', 'Educacion', 'Tecnologia', 'Gastronomia', 'Social', 'Otro'], default: 'Otro' },
   status: { type: String, enum: ['public', 'private'], default: 'private' },
+  image: { type: String, default: '' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true });
 
